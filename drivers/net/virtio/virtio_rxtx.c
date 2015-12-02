@@ -438,7 +438,9 @@ virtio_dev_rx_queue_setup(struct rte_eth_dev *dev,
 
 	dev->data->rx_queues[queue_idx] = vq;
 
+#ifdef RTE_VIRTIO_INC_VECTOR
 	virtio_rxq_vec_setup(vq);
+#endif
 
 	return 0;
 }
@@ -464,7 +466,10 @@ virtio_dev_tx_queue_setup(struct rte_eth_dev *dev,
 			const struct rte_eth_txconf *tx_conf)
 {
 	uint8_t vtpci_queue_idx = 2 * queue_idx + VTNET_SQ_TQ_QUEUE_IDX;
+
+#ifdef RTE_VIRTIO_INC_VECTOR
 	struct virtio_hw *hw = dev->data->dev_private;
+#endif
 	struct virtqueue *vq;
 	uint16_t tx_free_thresh;
 	int ret;
@@ -477,6 +482,7 @@ virtio_dev_tx_queue_setup(struct rte_eth_dev *dev,
 		return -EINVAL;
 	}
 
+#ifdef RTE_VIRTIO_INC_VECTOR
 	/* Use simple rx/tx func if single segment and no offloads */
 	if ((tx_conf->txq_flags & VIRTIO_SIMPLE_FLAGS) == VIRTIO_SIMPLE_FLAGS &&
 	     !vtpci_with_feature(hw, VIRTIO_NET_F_MRG_RXBUF)) {
@@ -485,6 +491,7 @@ virtio_dev_tx_queue_setup(struct rte_eth_dev *dev,
 		dev->rx_pkt_burst = virtio_recv_pkts_vec;
 		use_simple_rxtx = 1;
 	}
+#endif
 
 	ret = virtio_dev_queue_setup(dev, VTNET_TQ, queue_idx, vtpci_queue_idx,
 			nb_desc, socket_id, &vq);
