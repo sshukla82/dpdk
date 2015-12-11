@@ -1291,7 +1291,7 @@ eth_virtio_dev_init(struct rte_eth_dev *eth_dev)
 		return -1;
 
 	hw->use_msix = virtio_has_msix(&pci_dev->addr);
-	hw->io_base = (uint32_t)(uintptr_t)pci_dev->mem_resource[0].addr;
+	hw->io_base = (uint64_t)(uintptr_t)pci_dev->mem_resource[0].addr;
 
 	/* Reset the device although not necessary at startup */
 	vtpci_reset(hw);

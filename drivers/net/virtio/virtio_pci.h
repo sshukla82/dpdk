@@ -169,7 +169,7 @@ struct virtqueue;
 
 struct virtio_hw {
 	struct virtqueue *cvq;
-	uint32_t    io_base;
+	uint64_t    io_base;
 	uint32_t    guest_features;
 	uint32_t    max_tx_queues;
 	uint32_t    max_rx_queues;
@@ -231,7 +231,7 @@ outl_p(unsigned int data, unsigned int port)
 #endif
 
 #define VIRTIO_PCI_REG_ADDR(hw, reg) \
-	(unsigned short)((hw)->io_base + (reg))
+	(unsigned long)((hw)->io_base + (reg))
 
 #define VIRTIO_READ_REG_1(hw, reg) \
 	inb((VIRTIO_PCI_REG_ADDR((hw), (reg))))
