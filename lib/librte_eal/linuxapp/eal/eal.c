@@ -49,9 +49,7 @@
 #include <errno.h>
 #include <sys/mman.h>
 #include <sys/queue.h>
-#if defined(RTE_ARCH_X86_64) || defined(RTE_ARCH_I686)
-#include <sys/io.h>
-#endif
+#include <rte_io.h>
 
 #include <rte_common.h>
 #include <rte_debug.h>
