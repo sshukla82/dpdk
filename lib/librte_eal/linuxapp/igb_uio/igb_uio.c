@@ -39,6 +39,7 @@
 #include <rte_pci_dev_features.h>
 
 #include "compat.h"
+#include "igbuio_ioport_misc.h"
 
 #ifdef RTE_PCI_CONFIG
 #define PCI_SYS_FILE_BUF_SIZE      10
@@ -366,7 +367,7 @@ igbuio_pci_setup_ioport(struct pci_dev *dev, struct uio_info *info,
 		return -EINVAL;
 
 	info->port[n].name = name;
-	info->port[n].start = addr;
+	info->port[n].start = igbuio_iomap(addr);
 	info->port[n].size = len;
 	info->port[n].porttype = UIO_PORT_X86;
 
@@ -615,6 +616,10 @@ igbuio_pci_init_module(void)
 {
 	int ret;
 
+	ret = igbuio_ioport_register();
+	if (ret < 0)
+		return ret;
+
 	ret = igbuio_config_intr_mode(intr_mode);
 	if (ret < 0)
 		return ret;
@@ -625,6 +630,7 @@ igbuio_pci_init_module(void)
 static void __exit
 igbuio_pci_exit_module(void)
 {
+	igbuio_ioport_unregister();
 	pci_unregister_driver(&igbuio_pci_driver);
 }
 
