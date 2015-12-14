@@ -1169,7 +1169,7 @@ static int virtio_resource_init_by_ioports(struct rte_pci_device *pci_dev)
 			while (*ptr && isspace(*ptr))
 				ptr++;
 
-			sscanf(ptr, "%04hx-%04hx", &start, &end);
+			sscanf(ptr, "%hx-%hx", &start, &end);
 			size = end - start + 1;
 
 			break;
