@@ -62,7 +62,7 @@
 #include "virtio_logs.h"
 #include "virtqueue.h"
 #include "virtio_rxtx.h"
-
+#include "virtio_ioport.h"
 
 static int eth_virtio_dev_init(struct rte_eth_dev *eth_dev);
 static int eth_virtio_dev_uninit(struct rte_eth_dev *eth_dev);
@@ -497,6 +497,7 @@ virtio_dev_close(struct rte_eth_dev *dev)
 	hw->started = 0;
 	virtio_dev_free_mbufs(dev);
 	virtio_free_queues(dev);
+	virtio_ioport_unmap();
 }
 
 static void
@@ -1288,6 +1289,9 @@ eth_virtio_dev_init(struct rte_eth_dev *eth_dev)
 	pci_dev = eth_dev->pci_dev;
 
 	if (virtio_resource_init(pci_dev) < 0)
+		return -1;
+
+	if (virtio_ioport_init(&pci_dev->mem_resource[0]))
 		return -1;
 
 	hw->use_msix = virtio_has_msix(&pci_dev->addr);
