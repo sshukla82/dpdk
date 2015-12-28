@@ -68,7 +68,7 @@ virtio_map_ioport(void **resource_addr)
 	fd = open(VIRT_IOPORT_DEV, O_RDWR);
 	if (fd < 0) {
 		PMD_INIT_LOG(ERR, "device file %s open error: %d\n",
-			     DEV_NAME, fd);
+			     VIRT_IOPORT_DEV, fd);
 		ret = -1;
 		goto out;
 	}
@@ -116,6 +116,8 @@ int virtio_ioport_init(struct rte_pci_resource *mem_resource)
 {
 	int ret = 0;
 
+	(void)mem_resource;
+	return 0;
 	/**
 	 * Map the all IOBAR entry from /proc/ioport to 4k page_size only once.
 	 * Later virtio_set_ioport_addr() func will update correct bar_addr for
