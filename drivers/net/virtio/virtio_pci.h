@@ -226,6 +226,84 @@ outl_p(unsigned int data, unsigned int port)
 }
 #endif
 
+#define VIRTIO_IOPORT_FILEIO
+
+#ifdef VIRTIO_IOPORT_FILEIO
+/*------------------*/
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+static int portfd, init_done;
+
+#define PORT_FILE "/dev/ioport"
+static inline int open_ioport(void)
+{
+	if (!init_done) {
+//		if (portfd < 0) {
+			portfd = open(PORT_FILE, O_RDWR);
+			if (portfd < 0) {
+				return -1;
+			}
+//		}
+		init_done = 1;
+	}
+
+	return 0;
+}
+
+/* NOTE : No close function used in pmd driver .. TODO */
+static inline void close_ioport(void)
+{
+	close(portfd);
+}
+
+static inline void ioport_reg_addr(uint32_t io_base, int reg)
+{
+	fprintf(stderr, "calling %s iobase = %x reg = %d (io_base + reg = %x) \n", __func__, io_base, reg, (io_base + reg));
+	lseek(portfd, (uint32_t)(io_base + reg), SEEK_SET); 
+}
+
+static inline void ioport_inb(uint8_t *val)
+{
+	read(portfd, val, 1);
+	fprintf(stderr, "calling %s portfd = %d val = %d \n", __func__, portfd, *val);
+}
+
+static inline void ioport_inw(uint16_t *val)
+{
+	read(portfd, val, 2);
+	fprintf(stderr, "calling %s portfd = %d val = %hx \n", __func__, portfd, *val);
+}
+
+static inline void ioport_inl(uint32_t *val)
+{
+	read(portfd, val, 4);
+	fprintf(stderr, "calling %s portfd = %d val = %x \n", __func__, portfd, *val);
+}
+
+static inline void ioport_outb_p(uint8_t val)
+{
+	fprintf(stderr, "calling %s portfd = %d val = %d \n", __func__, portfd, val);
+	write(portfd, &val, 1);
+}
+
+static inline void ioport_outw_p(uint16_t val)
+{
+	fprintf(stderr, "calling %s portfd = %d val = %hx \n", __func__, portfd, val);
+	write(portfd, &val, 2);
+}
+
+static inline void ioport_outl_p(uint32_t val)
+{
+	fprintf(stderr, "calling %s portfd = %d val = %x \n", __func__, portfd, val);
+	write(portfd, &val, 4);
+}
+#endif
+
+#ifndef VIRTIO_IOPORT_FILEIO
+
 #define VIRTIO_PCI_REG_ADDR(hw, reg) \
 	(unsigned long)((hw)->io_base + (reg))
 
@@ -243,6 +321,56 @@ outl_p(unsigned int data, unsigned int port)
 	inl((VIRTIO_PCI_REG_ADDR((hw), (reg))))
 #define VIRTIO_WRITE_REG_4(hw, reg, value) \
 	outl_p((unsigned int)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg))))
+#else
+
+
+#define VIRTIO_PCI_REG_ADDR(hw, reg) 		\
+	ioport_reg_addr(((hw)->io_base), (reg))
+
+
+#define VIRTIO_READ_REG_1(hw, reg) 		\
+({						\
+	uint8_t ret;				\
+	VIRTIO_PCI_REG_ADDR((hw), (reg));	\
+	ioport_inb(&ret);			\
+	ret;					\
+})
+
+#define VIRTIO_WRITE_REG_1(hw, reg, value) 	\
+({						\
+        VIRTIO_PCI_REG_ADDR((hw), (reg));       \
+	ioport_outb_p((unsigned char)(value));	\
+})						
+
+#define VIRTIO_READ_REG_2(hw, reg) 		\
+({						\
+	uint16_t ret;				\
+        VIRTIO_PCI_REG_ADDR((hw), (reg));       \
+	ioport_inw(&ret);			\
+	ret;					\
+})					
+
+#define VIRTIO_WRITE_REG_2(hw, reg, value) 	\
+({						\
+        VIRTIO_PCI_REG_ADDR((hw), (reg));       \
+	ioport_outw_p((unsigned short)(value));	\
+})
+
+#define VIRTIO_READ_REG_4(hw, reg) 		\
+({						\
+	uint32_t ret;				\
+        VIRTIO_PCI_REG_ADDR((hw), (reg));       \
+	ioport_inl(&ret);			\
+	ret;					\
+})						
+
+#define VIRTIO_WRITE_REG_4(hw, reg, value) 	\
+({						\
+        VIRTIO_PCI_REG_ADDR((hw), (reg));       \
+	ioport_outl_p((unsigned int)(value));	\
+})
+
+#endif
 
 static inline int
 vtpci_with_feature(struct virtio_hw *hw, uint32_t bit)

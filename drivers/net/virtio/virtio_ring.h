@@ -141,8 +141,8 @@ vring_init(struct vring *vr, unsigned int num, uint8_t *p,
 	unsigned long align)
 {
 	vr->num = num;
-	vr->desc = (struct vring_desc *) p;
-	vr->avail = (struct vring_avail *) (p +
+	vr->desc = (struct vring_desc *) (uintptr_t)p;
+	vr->avail = (struct vring_avail *) ((uintptr_t)p +
 		num * sizeof(struct vring_desc));
 	vr->used = (void *)
 		RTE_ALIGN_CEIL((uintptr_t)(&vr->avail->ring[num]), align);

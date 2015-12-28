@@ -730,7 +730,7 @@ virtio_recv_mergeable_pkts(void *rx_queue,
 			continue;
 		}
 
-		header = (struct virtio_net_hdr_mrg_rxbuf *)((char *)rxm->buf_addr +
+		header = (struct virtio_net_hdr_mrg_rxbuf *)(uintptr_t)((char *)rxm->buf_addr +
 			RTE_PKTMBUF_HEADROOM - hdr_size);
 		seg_num = header->num_buffers;
 

@@ -726,7 +726,7 @@ virtio_dev_xstats_get(struct rte_eth_dev *dev, struct rte_eth_xstats *xstats,
 			snprintf(xstats[count].name, sizeof(xstats[count].name),
 				 "rx_q%u_%s", i,
 				 rte_virtio_q_stat_strings[t].name);
-			xstats[count].value = *(uint64_t *)(((char *)rxvq) +
+			xstats[count].value = *(uint64_t *)(uintptr_t)(((char *)rxvq) +
 				rte_virtio_q_stat_strings[t].offset);
 			count++;
 		}
@@ -744,7 +744,7 @@ virtio_dev_xstats_get(struct rte_eth_dev *dev, struct rte_eth_xstats *xstats,
 			snprintf(xstats[count].name, sizeof(xstats[count].name),
 				 "tx_q%u_%s", i,
 				 rte_virtio_q_stat_strings[t].name);
-			xstats[count].value = *(uint64_t *)(((char *)txvq) +
+			xstats[count].value = *(uint64_t *)(uintptr_t)(((char *)txvq) +
 				rte_virtio_q_stat_strings[t].offset);
 			count++;
 		}
@@ -1459,11 +1459,24 @@ static int
 rte_virtio_pmd_init(const char *name __rte_unused,
 		    const char *param __rte_unused)
 {
+#ifndef VIRTIO_IOPORT_FILEIO
 	if (rte_eal_iopl_init() != 0) {
 		PMD_INIT_LOG(ERR, "IOPL call failed - cannot use virtio PMD");
 		return -1;
 	}
+#else
+	static int call = 0;
 
+	if (call == 0) {
+		if (open_ioport() != 0) {
+			PMD_INIT_LOG(ERR, "/dev/ioport open call failed - cannot use virtio PMD");
+			return -1;
+		} else
+			PMD_INIT_LOG(ERR, "/dev/ioport open call Passed %d\n");
+
+		call = 5;
+	}
+#endif
 	rte_eth_driver_register(&rte_virtio_pmd);
 	return 0;
 }
