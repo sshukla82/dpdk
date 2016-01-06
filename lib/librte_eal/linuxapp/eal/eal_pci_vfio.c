@@ -760,6 +760,26 @@ pci_vfio_map_resource(struct rte_pci_device *dev)
 			return -1;
 		}
 
+		/* chk for io port region */
+		uint32_t ioport_bar;
+		ret = pread64(vfio_dev_fd, &ioport_bar, sizeof(ioport_bar),
+			      VFIO_GET_REGION_ADDR(VFIO_PCI_CONFIG_REGION_INDEX)
+			      + PCI_BASE_ADDRESS_0 + i*4);
+
+		if (ret != sizeof(ioport_bar)) {
+			RTE_LOG(ERR, EAL,
+				"Cannot read command (%x) from PCI config"
+				"space!\n", PCI_BASE_ADDRESS_0 + i*4);
+			return -1;
+		}
+
+		if (ioport_bar & PCI_BASE_ADDRESS_SPACE_IO) {
+			RTE_LOG(INFO, EAL, "\tIgnore mapping since Its a i/o"
+					   "port bar (%d) addr : %x\n", i,
+					   ioport_bar);
+			continue;
+		}
+
 		/* skip non-mmapable BARs */
 		if ((reg.flags & VFIO_REGION_INFO_FLAG_MMAP) == 0)
 			continue;
