@@ -40,7 +40,9 @@
 #include <sys/types.h>
 #include <machine/cpufunc.h>
 #else
+#if defined(RTE_ARCH_X86_64) || defined(RTE_ARCH_I686)
 #include <sys/io.h>
+#endif
 #endif
 
 #include <rte_ethdev.h>
