@@ -141,4 +141,7 @@ DPDK_2.3 {
 
 	rte_eal_pci_map_device;
 	rte_eal_pci_unmap_device;
+	rte_eal_pci_read_bar;
+	rte_eal_pci_write_bar;
+
 } DPDK_2.2;

@@ -479,6 +479,25 @@ int rte_eal_pci_write_config(const struct rte_pci_device *dev,
 	return -1;
 }
 
+int rte_eal_pci_read_bar(const struct rte_pci_device *device __rte_unused,
+			 void *buf __rte_unused, size_t len __rte_unused,
+			 off_t offset __rte_unused,
+			 int bar_idx __rte_unused)
+
+{
+	/* NA */
+	return 1;
+}
+
+int rte_eal_pci_write_bar(const struct rte_pci_device *device __rte_unused,
+			  const void *buf __rte_unused, size_t len __rte_unused,
+			  off_t offset __rte_unused,
+			  int bar_idx __rte_unused)
+{
+	/* NA */
+	return 1;
+}
+
 /* Init the PCI EAL subsystem */
 int
 rte_eal_pci_init(void)
