@@ -240,7 +240,8 @@ pci_vfio_set_bus_master(int dev_fd)
 /* pick IOMMU type. returns a pointer to vfio_iommu_type or NULL for error */
 static const struct vfio_iommu_type *
 pci_vfio_set_iommu_type(int vfio_container_fd) {
-	for (unsigned idx = 0; idx < RTE_DIM(iommu_types); idx++) {
+	unsigned idx;
+	for (idx = 0; idx < RTE_DIM(iommu_types); idx++) {
 		const struct vfio_iommu_type *t = &iommu_types[idx];
 
 		int ret = ioctl(vfio_container_fd, VFIO_SET_IOMMU,
