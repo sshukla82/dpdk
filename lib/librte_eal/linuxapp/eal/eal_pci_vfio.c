@@ -93,6 +93,34 @@ pci_vfio_write_config(const struct rte_intr_handle *intr_handle,
 	       VFIO_GET_REGION_ADDR(VFIO_PCI_CONFIG_REGION_INDEX) + offs);
 }
 
+int
+pci_vfio_read_bar(const struct rte_intr_handle *intr_handle,
+		  void *buf, size_t len, off_t offs, int bar_idx)
+{
+	if (bar_idx < VFIO_PCI_BAR0_REGION_INDEX
+	   || bar_idx > VFIO_PCI_BAR5_REGION_INDEX) {
+		RTE_LOG(ERR, EAL, "invalid bar_idx!\n");
+		return -1;
+	}
+
+	return pread64(intr_handle->vfio_dev_fd, buf, len,
+		       VFIO_GET_REGION_ADDR(bar_idx) + offs);
+}
+
+int
+pci_vfio_write_bar(const struct rte_intr_handle *intr_handle,
+		   const void *buf, size_t len, off_t offs, int bar_idx)
+{
+	if (bar_idx < VFIO_PCI_BAR0_REGION_INDEX
+	   || bar_idx > VFIO_PCI_BAR5_REGION_INDEX) {
+		RTE_LOG(ERR, EAL, "invalid bar_idx!\n");
+		return -1;
+	}
+
+	return pwrite64(intr_handle->vfio_dev_fd, buf, len,
+			VFIO_GET_REGION_ADDR(bar_idx) + offs);
+}
+
 /* get PCI BAR number where MSI-X interrupts are */
 static int
 pci_vfio_get_msix_bar(int fd, int *msix_bar, uint32_t *msix_table_offset,
