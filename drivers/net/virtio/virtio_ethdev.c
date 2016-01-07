@@ -1287,9 +1287,18 @@ eth_virtio_dev_init(struct rte_eth_dev *eth_dev)
 
 	pci_dev = eth_dev->pci_dev;
 
+#ifdef RTE_EAL_VFIO
+	hw->pci_dev = pci_dev;
+
+	/* For debug use only */
+	const struct rte_intr_handle *intr_handle __rte_unused = &pci_dev->intr_handle;
+	PMD_INIT_LOG(DEBUG, "hw->pci_dev %p intr_handle %p vfio_dev_fd %d\n",
+			     hw->pci_dev, intr_handle,
+			     intr_handle->vfio_dev_fd);
+#endif
+
 	if (virtio_resource_init(pci_dev) < 0)
 		return -1;
-
 	hw->use_msix = virtio_has_msix(&pci_dev->addr);
 	hw->io_base = (uint32_t)(uintptr_t)pci_dev->mem_resource[0].addr;
 

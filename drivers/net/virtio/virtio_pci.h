@@ -47,6 +47,10 @@
 
 #include <rte_ethdev.h>
 
+#ifdef RTE_EAL_VFIO
+#include "virtio_vfio.h"
+#endif
+
 struct virtqueue;
 
 /* VirtIO PCI vendor/device ID. */
@@ -176,6 +180,9 @@ struct virtio_hw {
 	uint8_t	    use_msix;
 	uint8_t     started;
 	uint8_t     mac_addr[ETHER_ADDR_LEN];
+#ifdef RTE_EAL_VFIO
+	const struct rte_pci_device *pci_dev;
+#endif
 };
 
 /*
@@ -228,6 +235,7 @@ outl_p(unsigned int data, unsigned int port)
 }
 #endif
 
+#ifndef RTE_EAL_VFIO
 #define VIRTIO_PCI_REG_ADDR(hw, reg) \
 	(unsigned short)((hw)->io_base + (reg))
 
@@ -245,6 +253,7 @@ outl_p(unsigned int data, unsigned int port)
 	inl((VIRTIO_PCI_REG_ADDR((hw), (reg))))
 #define VIRTIO_WRITE_REG_4(hw, reg, value) \
 	outl_p((unsigned int)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg))))
+#endif
 
 static inline int
 vtpci_with_feature(struct virtio_hw *hw, uint32_t bit)
