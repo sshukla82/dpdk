@@ -68,6 +68,12 @@ int pci_vfio_read_config(const struct rte_intr_handle *intr_handle,
 int pci_vfio_write_config(const struct rte_intr_handle *intr_handle,
 			  const void *buf, size_t len, off_t offs);
 
+int pci_vfio_read_bar(const struct rte_intr_handle *intr_handle,
+		      void *buf, size_t len, off_t offs, int bar_idx);
+
+int pci_vfio_write_bar(const struct rte_intr_handle *intr_handle,
+		       const void *buf, size_t len, off_t offs, int bar_idx);
+
 /* map VFIO resource prototype */
 int pci_vfio_map_resource(struct rte_pci_device *dev);
 int pci_vfio_get_group_fd(int iommu_group_fd);

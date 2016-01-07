@@ -621,6 +621,34 @@ int rte_eal_pci_write_config(const struct rte_pci_device *device,
 	}
 }
 
+int rte_eal_pci_read_bar(const struct rte_pci_device *device __rte_unused,
+			 void *buf __rte_unused,
+			 size_t len __rte_unused,
+			 off_t offset __rte_unused,
+			 int bar_idx __rte_unused)
+{
+#ifdef VFIO_PRESENT
+	const struct rte_intr_handle *intr_handle = &device->intr_handle;
+	return pci_vfio_read_bar(intr_handle, buf, len, offset, bar_idx);
+#else
+	return 0; /* UIO's not applicable */
+#endif
+}
+
+int rte_eal_pci_write_bar(const struct rte_pci_device *device __rte_unused,
+			  const void *buf __rte_unused,
+			  size_t len __rte_unused,
+			  off_t offset __rte_unused,
+			  int bar_idx __rte_unused)
+{
+#ifdef VFIO_PRESENT
+	const struct rte_intr_handle *intr_handle = &device->intr_handle;
+	return pci_vfio_write_bar(intr_handle, buf, len, offset, bar_idx);
+#else
+	return 0; /* UIO's not applicable */
+#endif
+}
+
 /* Init the PCI EAL subsystem */
 int
 rte_eal_pci_init(void)
