@@ -471,6 +471,44 @@ int rte_eal_pci_read_config(const struct rte_pci_device *device,
 			    void *buf, size_t len, off_t offset);
 
 /**
+ * Read PCI bar space.
+ *
+ * @param device
+ *   A pointer to a rte_pci_device structure describing the device
+ *   to use
+ * @param buf
+ *   A data buffer where the bytes should be read into
+ * @param len
+ *   The length of the data buffer.
+ * @param offset
+ *   The offset into PCI bar space
+ * @param bar_idx
+ *   The pci bar index (valid range is 0..5)
+ */
+int rte_eal_pci_read_bar(const struct rte_pci_device *device,
+			 void *buf, size_t len, off_t offset, int bar_idx);
+
+/**
+ * Write PCI bar space.
+ *
+ * @param device
+ *   A pointer to a rte_pci_device structure describing the device
+ *   to use
+ * @param buf
+ *   A data buffer containing the bytes should be written
+ * @param len
+ *   The length of the data buffer.
+ * @param offset
+ *   The offset into PCI config space
+ * @param bar_idx
+ *   The pci bar index (valid range is 0..5)
+*/
+int rte_eal_pci_write_bar(const struct rte_pci_device *device,
+			  const void *buf, size_t len, off_t offset,
+			  int bar_idx);
+
+
+/**
  * Write PCI config space.
  *
  * @param device
