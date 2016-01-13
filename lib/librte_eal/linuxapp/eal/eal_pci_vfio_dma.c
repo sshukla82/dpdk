@@ -1,7 +1,7 @@
 /*-
  *   BSD LICENSE
  *
- *   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
+ *   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
  *   All rights reserved.
  *
  *   Redistribution and use in source and binary forms, with or without
@@ -31,34 +31,54 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef EAL_VFIO_H_
-#define EAL_VFIO_H_
+#include <string.h>
+#include <sys/ioctl.h>
 
-/*
- * determine if VFIO is present on the system
- */
-#ifdef RTE_EAL_VFIO
-#include <linux/version.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 6, 0)
-#include <linux/vfio.h>
+#include <rte_log.h>
+#include <rte_pci.h>
+#include <rte_eal_memconfig.h>
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 0)
-#define RTE_PCI_MSIX_TABLE_BIR    0x7
-#define RTE_PCI_MSIX_TABLE_OFFSET 0xfffffff8
-#define RTE_PCI_MSIX_FLAGS_QSIZE  0x07ff
-#else
-#define RTE_PCI_MSIX_TABLE_BIR    PCI_MSIX_TABLE_BIR
-#define RTE_PCI_MSIX_TABLE_OFFSET PCI_MSIX_TABLE_OFFSET
-#define RTE_PCI_MSIX_FLAGS_QSIZE  PCI_MSIX_FLAGS_QSIZE
+#include "eal_pci_init.h"
+
+#ifdef VFIO_PRESENT
+
+int
+vfio_iommu_type1_dma_map(int vfio_container_fd)
+{
+	const struct rte_memseg *ms = rte_eal_get_physmem_layout();
+	int i, ret;
+
+	/* map all DPDK segments for DMA. use 1:1 PA to IOVA mapping */
+	for (i = 0; i < RTE_MAX_MEMSEG; i++) {
+		struct vfio_iommu_type1_dma_map dma_map;
+
+		if (ms[i].addr == NULL)
+			break;
+
+		memset(&dma_map, 0, sizeof(dma_map));
+		dma_map.argsz = sizeof(struct vfio_iommu_type1_dma_map);
+		dma_map.vaddr = ms[i].addr_64;
+		dma_map.size = ms[i].len;
+		dma_map.iova = ms[i].phys_addr;
+		dma_map.flags = VFIO_DMA_MAP_FLAG_READ | VFIO_DMA_MAP_FLAG_WRITE;
+
+		ret = ioctl(vfio_container_fd, VFIO_IOMMU_MAP_DMA, &dma_map);
+
+		if (ret) {
+			RTE_LOG(ERR, EAL, "  cannot set up DMA remapping, "
+					"error %i (%s)\n", errno, strerror(errno));
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+int
+vfio_iommu_noiommu_dma_map(int __rte_unused vfio_container_fd)
+{
+	/* No-IOMMU mode does not need DMA mapping */
+	return 0;
+}
+
 #endif
-
-/* older kernels may not have no-IOMMU mode */
-#ifndef VFIO_NOIOMMU_IOMMU
-#define VFIO_NOIOMMU_IOMMU 8
-#endif
-
-#define VFIO_PRESENT
-#endif /* kernel version */
-#endif /* RTE_EAL_VFIO */
-
-#endif /* EAL_VFIO_H_ */

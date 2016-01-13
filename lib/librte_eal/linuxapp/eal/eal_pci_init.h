@@ -112,6 +112,28 @@ struct vfio_config {
 	struct vfio_group vfio_groups[VFIO_MAX_GROUPS];
 };
 
+/* function pointer typedef for DMA mapping functions */
+typedef  int (*vfio_dma_func_t)(int);
+
+/* Structure to hold supported IOMMU types */
+struct vfio_iommu_type {
+	int type_id;
+	const char *name;
+	vfio_dma_func_t dma_map_func;
+};
+
+/* function prototypes for different IOMMU types */
+int vfio_iommu_type1_dma_map(int container_fd);
+int vfio_iommu_noiommu_dma_map(int container_fd);
+
+/* IOMMU types we support */
+static const struct vfio_iommu_type iommu_types[] = {
+		/* x86 IOMMU, otherwise known as type 1 */
+		{ VFIO_TYPE1_IOMMU, "Type 1", &vfio_iommu_type1_dma_map},
+		/* IOMMU-less mode */
+		{ VFIO_NOIOMMU_IOMMU, "No-IOMMU", &vfio_iommu_noiommu_dma_map},
+};
+
 #endif
 
 #endif /* EAL_PCI_INIT_H_ */
