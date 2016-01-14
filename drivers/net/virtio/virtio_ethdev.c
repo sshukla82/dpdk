@@ -497,6 +497,8 @@ virtio_dev_close(struct rte_eth_dev *dev)
 	hw->started = 0;
 	virtio_dev_free_mbufs(dev);
 	virtio_free_queues(dev);
+
+	/* For vfio case : hotunplug/unmap not supported (todo) */
 }
 
 static void
@@ -1283,6 +1285,16 @@ static int virtio_hw_init_by_vfio(struct virtio_hw *hw,
 	if (virtio_chk_for_vfio(pci_dev) < 0) {
 		vdev->is_vfio = false;
 		vdev->pci_dev = NULL;
+		return -1;
+	}
+
+	/*
+	 * pci_map_device used not to actually map ioport region but
+	 * create vfio container/group and vfio-dev-fd for _this_
+	 * virtio interface.
+	 */
+	if (rte_eal_pci_map_device(pci_dev) != 0) {
+		PMD_INIT_LOG(ERR, "vfio pci mapping failed for ioport bar\n");
 		return -1;
 	}
 
