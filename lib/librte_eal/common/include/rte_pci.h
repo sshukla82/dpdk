@@ -523,6 +523,33 @@ int rte_eal_pci_write_bar(const struct rte_pci_device *device,
  */
 int rte_eal_pci_write_config(const struct rte_pci_device *device,
 			     const void *buf, size_t len, off_t offset);
+/**
+ * Map the PCI device resources in user space virtual memory address
+ *
+ * Note that driver should not call this function when flag
+ * RTE_PCI_DRV_NEED_MAPPING is set, as EAL will do that for
+ * you when it's on.
+ *
+ * @param dev
+ *   A pointer to a rte_pci_device structure describing the device
+ *   to use
+ *
+ * @return
+ *   0 on success, negative on error and positive if no driver
+ *   is found for the device.
+ */
+int rte_eal_pci_map_device(struct rte_pci_device *dev);
+
+/**
+ * Unmap this device
+ *
+ * @param dev
+ *   A pointer to a rte_pci_device structure describing the device
+ *   to use
+ */
+void rte_eal_pci_unmap_device(struct rte_pci_device *dev);
+
+
 
 #ifdef RTE_PCI_CONFIG
 /**
