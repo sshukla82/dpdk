@@ -239,6 +239,48 @@ outl_p(unsigned int data, unsigned int port)
 }
 #endif
 
+#if !defined(RTE_ARCH_X86_64) && !defined(RTE_ARCH_I686) && \
+		defined(RTE_EXEC_ENV_LINUXAPP)
+static inline uint8_t inb(unsigned long addr __rte_unused)
+{
+	PMD_INIT_LOG(ERR, "inb() not supported for this RTE_ARCH\n");
+	return 0;
+}
+
+static inline uint16_t inw(unsigned long addr __rte_unused)
+{
+	PMD_INIT_LOG(ERR, "inw() not supported for this RTE_ARCH\n");
+	return 0;
+}
+
+static inline uint32_t inl(unsigned long addr __rte_unused)
+{
+	PMD_INIT_LOG(ERR, "in() not supported for this RTE_ARCH\n");
+	return 0;
+}
+
+static inline void
+outb_p(unsigned char data __rte_unused, unsigned int port __rte_unused)
+{
+	PMD_INIT_LOG(ERR, "outb_p() not supported for this RTE_ARCH\n");
+	return;
+}
+
+static inline void
+outw_p(unsigned short data __rte_unused, unsigned int port __rte_unused)
+{
+	PMD_INIT_LOG(ERR, "outw_p() not supported for this RTE_ARCH\n");
+	return;
+}
+
+static inline void
+outl_p(unsigned int data __rte_unused, unsigned int port __rte_unused)
+{
+	PMD_INIT_LOG(ERR, "outl_p() not supported for this RTE_ARCH\n");
+	return;
+}
+#endif
+
 #define VIRTIO_PCI_REG_ADDR(hw, reg) \
 	(unsigned short)((hw)->io_base + (reg))
 
