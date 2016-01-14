@@ -46,6 +46,8 @@
 #endif
 
 #include <rte_ethdev.h>
+#include <stdbool.h>
+#include "virtio_vfio_rw.h"
 
 struct virtqueue;
 
@@ -165,6 +167,14 @@ struct virtqueue;
  */
 #define VIRTIO_MAX_VIRTQUEUES 8
 
+/* For vfio only */
+struct virtio_vfio_dev {
+	bool		is_vfio;	/* True: vfio i/f,
+					 * False: not a vfio i/f
+					 */
+	struct rte_pci_device *pci_dev; /* vfio dev */
+};
+
 struct virtio_hw {
 	struct virtqueue *cvq;
 	uint32_t    io_base;
@@ -176,6 +186,7 @@ struct virtio_hw {
 	uint8_t	    use_msix;
 	uint8_t     started;
 	uint8_t     mac_addr[ETHER_ADDR_LEN];
+	struct virtio_vfio_dev dev;
 };
 
 /*
@@ -231,20 +242,65 @@ outl_p(unsigned int data, unsigned int port)
 #define VIRTIO_PCI_REG_ADDR(hw, reg) \
 	(unsigned short)((hw)->io_base + (reg))
 
-#define VIRTIO_READ_REG_1(hw, reg) \
-	inb((VIRTIO_PCI_REG_ADDR((hw), (reg))))
-#define VIRTIO_WRITE_REG_1(hw, reg, value) \
-	outb_p((unsigned char)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg))))
+#define VIRTIO_READ_REG_1(hw, reg)					\
+({									\
+	uint8_t ret;							\
+	struct virtio_vfio_dev *vdev;					\
+	(vdev) = (&(hw)->dev);						\
+	(((vdev)->is_vfio) ?						\
+	(ioport_inb(((vdev)->pci_dev), reg, &ret)) :			\
+	((ret) = (inb((VIRTIO_PCI_REG_ADDR((hw), (reg)))))));		\
+	ret;								\
+})
 
-#define VIRTIO_READ_REG_2(hw, reg) \
-	inw((VIRTIO_PCI_REG_ADDR((hw), (reg))))
-#define VIRTIO_WRITE_REG_2(hw, reg, value) \
-	outw_p((unsigned short)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg))))
+#define VIRTIO_WRITE_REG_1(hw, reg, value)				\
+({									\
+	struct virtio_vfio_dev *vdev;					\
+	(vdev) = (&(hw)->dev);						\
+	(((vdev)->is_vfio) ?						\
+	(ioport_outb_p(((vdev)->pci_dev), reg, (uint8_t)(value))) :	\
+	(outb_p((unsigned char)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg)))))); \
+})
 
-#define VIRTIO_READ_REG_4(hw, reg) \
-	inl((VIRTIO_PCI_REG_ADDR((hw), (reg))))
-#define VIRTIO_WRITE_REG_4(hw, reg, value) \
-	outl_p((unsigned int)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg))))
+#define VIRTIO_READ_REG_2(hw, reg)					\
+({									\
+	uint16_t ret;							\
+	struct virtio_vfio_dev *vdev;					\
+	(vdev) = (&(hw)->dev);						\
+	(((vdev)->is_vfio) ?						\
+	(ioport_inw(((vdev)->pci_dev), reg, &ret)) :			\
+	((ret) = (inw((VIRTIO_PCI_REG_ADDR((hw), (reg)))))));		\
+	ret;								\
+})
+
+#define VIRTIO_WRITE_REG_2(hw, reg, value)				\
+({									\
+	struct virtio_vfio_dev *vdev;					\
+	(vdev) = (&(hw)->dev);						\
+	(((vdev)->is_vfio) ?						\
+	(ioport_outw_p(((vdev)->pci_dev), reg, (uint16_t)(value))) :	\
+	(outw_p((unsigned short)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg)))))); \
+})
+
+#define VIRTIO_READ_REG_4(hw, reg)					\
+({									\
+	uint32_t ret;							\
+	struct virtio_vfio_dev *vdev;					\
+	(vdev) = (&(hw)->dev);						\
+	(((vdev)->is_vfio) ?						\
+	(ioport_inl(((vdev)->pci_dev), reg, &ret)) :			\
+	((ret) = (inl((VIRTIO_PCI_REG_ADDR((hw), (reg)))))));		\
+	ret;								\
+})
+
+#define VIRTIO_WRITE_REG_4(hw, reg, value)				\
+({									\
+	struct virtio_vfio_dev *vdev;					\
+	(vdev) = (&(hw)->dev);						\
+	(((vdev)->is_vfio) ?						\
+	(ioport_outl_p(((vdev)->pci_dev), reg, (uint32_t)(value))) :	\
+	(outl_p((unsigned int)(value), (VIRTIO_PCI_REG_ADDR((hw), (reg)))))); \
+})
 
 static inline int
 vtpci_with_feature(struct virtio_hw *hw, uint32_t bit)
