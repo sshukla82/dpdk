@@ -1202,6 +1202,105 @@ static int virtio_resource_init(struct rte_pci_device *pci_dev)
 		return virtio_resource_init_by_ioports(pci_dev);
 }
 
+static int virtio_chk_for_vfio(struct rte_pci_device *pci_dev)
+{
+	/*
+	 * 1. check whether vfio-noiommu mode is enabled
+	 * 2. verify pci device attached to vfio-noiommu driver
+	 * root@arm64:/sys/bus/pci/drivers/vfio-pci/0000:00:01.0/iommu_group#
+	 * > cat name
+	 * > vfio-noiommu
+	 */
+
+	/* 1. Chk for vfio: noiommu mode set or not in kernel driver */
+	struct rte_pci_addr *loc;
+	FILE *fp;
+	const char *path = "/sys/module/vfio/parameters/enable_unsafe_noiommu_mode";
+	char filename[PATH_MAX] = {0};
+	char buf[PATH_MAX] = {0};
+
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		PMD_INIT_LOG(ERR, "can't open %s\n", path);
+		return -1;
+	}
+
+	if (fread(buf, sizeof(char), 1, fp) != 1) {
+		PMD_INIT_LOG(ERR, "can't read from file %s\n", path);
+		fclose(fp);
+		return -1;
+	}
+
+	if (strncmp(buf, "Y", 1) != 0) {
+		PMD_INIT_LOG(ERR, "[%s]: vfio: noiommu mode not set\n", path);
+		fclose(fp);
+		return -1;
+	}
+
+	fclose(fp);
+
+	/* 2. Verify pci device attached to vfio-noiommu driver */
+
+	/* 2.1 chk whether attached driver is vfio-noiommu or not */
+	loc = &pci_dev->addr;
+	snprintf(filename, sizeof(filename),
+		     SYSFS_PCI_DEVICES "/" PCI_PRI_FMT "/iommu_group/name",
+		     loc->domain, loc->bus, loc->devid, loc->function);
+
+	/* check for vfio-noiommu */
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		PMD_INIT_LOG(ERR, "can't open %s\n", filename);
+		return -1;
+	}
+
+	if (fread(buf, sizeof(char), sizeof("vfio-noiommu"), fp) !=
+		  sizeof("vfio-noiommu")) {
+		PMD_INIT_LOG(ERR, "can't read from file %s\n", filename);
+		fclose(fp);
+		return -1;
+	}
+
+	if (strncmp(buf, "vfio-noiommu", strlen("vfio-noiommu")) != 0) {
+		PMD_INIT_LOG(ERR, "not a vfio-noiommu driver\n");
+		fclose(fp);
+		return -1;
+	}
+
+	fclose(fp);
+
+	/* todo: vfio interrupt handling */
+	return 0;
+}
+
+/* Init virtio by vfio-way */
+static int virtio_hw_init_by_vfio(struct virtio_hw *hw,
+				  struct rte_pci_device *pci_dev)
+{
+	struct virtio_vfio_dev *vdev;
+
+	vdev = &hw->dev;
+	if (virtio_chk_for_vfio(pci_dev) < 0) {
+		vdev->is_vfio = false;
+		vdev->pci_dev = NULL;
+		return -1;
+	}
+
+	/* .. So attached interface is vfio */
+	vdev->is_vfio = true;
+	vdev->pci_dev = pci_dev;
+
+	/* For debug use only */
+	const struct rte_intr_handle *intr_handle;
+	RTE_SET_USED(intr_handle); /* to keep compilar happy */
+	intr_handle = &pci_dev->intr_handle;
+	PMD_INIT_LOG(DEBUG, "vdev->pci_dev %p intr_handle %p vfio_dev_fd %d\n",
+			     vdev->pci_dev, intr_handle,
+			     intr_handle->vfio_dev_fd);
+
+	return 0;
+}
+
 #else
 static int
 virtio_has_msix(const struct rte_pci_addr *loc __rte_unused)
@@ -1213,6 +1312,13 @@ virtio_has_msix(const struct rte_pci_addr *loc __rte_unused)
 static int virtio_resource_init(struct rte_pci_device *pci_dev __rte_unused)
 {
 	/* no setup required */
+	return 0;
+}
+
+static int virtio_hw_init_by_vfio(struct virtio_hw *hw __rte_unused,
+				  struct rte_pci_device *pci_dev __rte_unused)
+{
+	/* NA */
 	return 0;
 }
 #endif
@@ -1287,8 +1393,10 @@ eth_virtio_dev_init(struct rte_eth_dev *eth_dev)
 
 	pci_dev = eth_dev->pci_dev;
 
-	if (virtio_resource_init(pci_dev) < 0)
-		return -1;
+	if (virtio_hw_init_by_vfio(hw, pci_dev) < 0) {
+		if (virtio_resource_init(pci_dev) < 0)
+			return -1;
+	}
 
 	hw->use_msix = virtio_has_msix(&pci_dev->addr);
 	hw->io_base = (uint32_t)(uintptr_t)pci_dev->mem_resource[0].addr;
