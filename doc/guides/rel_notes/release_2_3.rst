@@ -4,6 +4,9 @@ DPDK Release 2.3
 New Features
 ------------
 
+* **Virtio 1.0 support.**
+
+  Enabled virtio 1.0 support for virtio pmd driver.
 
 Resolved Issues
 ---------------
