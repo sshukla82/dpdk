@@ -514,7 +514,9 @@ virtio_resource_init_by_ioports(struct rte_pci_device *pci_dev)
 static int
 legacy_virtio_resource_init(struct rte_pci_device *pci_dev)
 {
-	if (virtio_resource_init_by_uio(pci_dev) == 0)
+	if (pci_dev->kdrv == RTE_KDRV_VFIO_NOIOMMU)
+		return 0;
+	else if (virtio_resource_init_by_uio(pci_dev) == 0)
 		return 0;
 	else
 		return virtio_resource_init_by_ioports(pci_dev);
