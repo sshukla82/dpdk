@@ -131,6 +131,7 @@ rte_eal_pci_map_device(struct rte_pci_device *dev)
 	/* try mapping the NIC resources using VFIO if it exists */
 	switch (dev->kdrv) {
 	case RTE_KDRV_VFIO:
+	case RTE_KDRV_VFIO_NOIOMMU:
 #ifdef VFIO_PRESENT
 		if (pci_vfio_is_enabled())
 			ret = pci_vfio_map_resource(dev);
@@ -158,6 +159,7 @@ rte_eal_pci_unmap_device(struct rte_pci_device *dev)
 	/* try unmapping the NIC resources using VFIO if it exists */
 	switch (dev->kdrv) {
 	case RTE_KDRV_VFIO:
+	case RTE_KDRV_VFIO_NOIOMMU:
 		RTE_LOG(ERR, EAL, "Hotplug doesn't support vfio yet\n");
 		break;
 	case RTE_KDRV_IGB_UIO:
@@ -353,9 +355,12 @@ pci_scan_one(const char *dirname, uint16_t domain, uint8_t bus,
 	}
 
 	if (!ret) {
-		if (!strcmp(driver, "vfio-pci"))
-			dev->kdrv = RTE_KDRV_VFIO;
-		else if (!strcmp(driver, "igb_uio"))
+		if (!strcmp(driver, "vfio-pci")) {
+			if (pci_vfio_is_noiommu(dev) == 0)
+				dev->kdrv = RTE_KDRV_VFIO_NOIOMMU;
+			else
+				dev->kdrv = RTE_KDRV_VFIO;
+		} else if (!strcmp(driver, "igb_uio"))
 			dev->kdrv = RTE_KDRV_IGB_UIO;
 		else if (!strcmp(driver, "uio_pci_generic"))
 			dev->kdrv = RTE_KDRV_UIO_GENERIC;
@@ -630,6 +635,7 @@ int rte_eal_pci_read_bar(const struct rte_pci_device *device,
 
 	switch (device->kdrv) {
 	case RTE_KDRV_VFIO:
+	case RTE_KDRV_VFIO_NOIOMMU:
 		return pci_vfio_read_bar(intr_handle, buf, len,
 					 offset, bar_idx);
 	default:
@@ -647,6 +653,7 @@ int rte_eal_pci_write_bar(const struct rte_pci_device *device,
 
 	switch (device->kdrv) {
 	case RTE_KDRV_VFIO:
+	case RTE_KDRV_VFIO_NOIOMMU:
 		return pci_vfio_write_bar(intr_handle, buf, len,
 					  offset, bar_idx);
 	default:

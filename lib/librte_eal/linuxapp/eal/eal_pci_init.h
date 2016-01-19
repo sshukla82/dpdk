@@ -60,6 +60,7 @@ int pci_uio_write_config(const struct rte_intr_handle *intr_handle,
 
 int pci_vfio_enable(void);
 int pci_vfio_is_enabled(void);
+int pci_vfio_is_noiommu(struct rte_pci_device *pci_dev);
 int pci_vfio_mp_sync_setup(void);
 
 /* access config space */

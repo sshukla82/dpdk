@@ -60,7 +60,7 @@ virtio_read_reg_1(struct virtio_hw *hw, uint64_t reg_offset)
 	struct rte_pci_device *dev;
 
 	dev = hw->dev;
-	if (dev->kdrv == RTE_KDRV_VFIO)
+	if (dev->kdrv == RTE_KDRV_VFIO_NOIOMMU)
 		ioport_inb(dev, reg_offset, &ret);
 	else
 		ret = inb(VIRTIO_PCI_REG_ADDR(hw, reg_offset));
@@ -75,7 +75,7 @@ virtio_read_reg_2(struct virtio_hw *hw, uint64_t reg_offset)
 	struct rte_pci_device *dev;
 
 	dev = hw->dev;
-	if (dev->kdrv == RTE_KDRV_VFIO)
+	if (dev->kdrv == RTE_KDRV_VFIO_NOIOMMU)
 		ioport_inw(dev, reg_offset, &ret);
 	else
 		ret = inw(VIRTIO_PCI_REG_ADDR(hw, reg_offset));
@@ -90,7 +90,7 @@ virtio_read_reg_4(struct virtio_hw *hw, uint64_t reg_offset)
 	struct rte_pci_device *dev;
 
 	dev = hw->dev;
-	if (dev->kdrv == RTE_KDRV_VFIO)
+	if (dev->kdrv == RTE_KDRV_VFIO_NOIOMMU)
 		ioport_inl(dev, reg_offset, &ret);
 	else
 		ret = inl(VIRTIO_PCI_REG_ADDR(hw, reg_offset));
@@ -104,7 +104,7 @@ virtio_write_reg_1(struct virtio_hw *hw, uint64_t reg_offset, uint8_t value)
 	struct rte_pci_device *dev;
 
 	dev = hw->dev;
-	if (dev->kdrv == RTE_KDRV_VFIO)
+	if (dev->kdrv == RTE_KDRV_VFIO_NOIOMMU)
 		ioport_outb_p(dev, reg_offset, value);
 	else
 		outb_p((unsigned char)value,
@@ -117,7 +117,7 @@ virtio_write_reg_2(struct virtio_hw *hw, uint64_t reg_offset, uint16_t value)
 	struct rte_pci_device *dev;
 
 	dev = hw->dev;
-	if (dev->kdrv == RTE_KDRV_VFIO)
+	if (dev->kdrv == RTE_KDRV_VFIO_NOIOMMU)
 		ioport_outw_p(dev, reg_offset, value);
 	else
 		outw_p((unsigned short)value,
@@ -130,7 +130,7 @@ virtio_write_reg_4(struct virtio_hw *hw, uint64_t reg_offset, uint32_t value)
 	struct rte_pci_device *dev;
 
 	dev = hw->dev;
-	if (dev->kdrv == RTE_KDRV_VFIO)
+	if (dev->kdrv == RTE_KDRV_VFIO_NOIOMMU)
 		ioport_outl_p(dev, reg_offset, value);
 	else
 		outl_p((unsigned int)value,

@@ -973,4 +973,73 @@ pci_vfio_is_enabled(void)
 {
 	return vfio_cfg.vfio_enabled;
 }
+
+int
+pci_vfio_is_noiommu(struct rte_pci_device *pci_dev)
+{
+	FILE *fp;
+	struct rte_pci_addr *loc;
+	const char *path = "/sys/module/vfio/parameters/enable_unsafe_noiommu_mode";
+	char filename[PATH_MAX] = {0};
+	char buf[PATH_MAX] = {0};
+
+	/*
+	 * 1. chk vfio-noiommu mode set in kernel driver
+	 * 2. verify pci device attached to vfio-noiommu driver
+	 * example:
+	 * cd /sys/bus/pci/drivers/vfio-pci/<virtio_dev_addr>/iommu_group
+	 * > cat name
+	 * > vfio-noiommu --> means virtio_dev attached to vfio-noiommu driver
+	 */
+
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		RTE_LOG(ERR, EAL, "can't open %s\n", path);
+		return -1;
+	}
+
+	if (fread(buf, sizeof(char), 1, fp) != 1) {
+		RTE_LOG(ERR, EAL, "can't read from file %s\n", path);
+		fclose(fp);
+		return -1;
+	}
+
+	if (strncmp(buf, "Y", 1) != 0) {
+		RTE_LOG(ERR, EAL, "[%s]: vfio: noiommu mode not set\n", path);
+		fclose(fp);
+		return -1;
+	}
+
+	fclose(fp);
+
+	/* 2. chk whether attached driver is vfio-noiommu or not */
+	loc = &pci_dev->addr;
+	snprintf(filename, sizeof(filename),
+		     SYSFS_PCI_DEVICES "/" PCI_PRI_FMT "/iommu_group/name",
+		     loc->domain, loc->bus, loc->devid, loc->function);
+
+	/* check for vfio-noiommu */
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		RTE_LOG(ERR, EAL, "can't open %s\n", filename);
+		return -1;
+	}
+
+	if (fread(buf, sizeof(char), sizeof("vfio-noiommu"), fp) !=
+		  sizeof("vfio-noiommu")) {
+		RTE_LOG(ERR, EAL, "can't read from file %s\n", filename);
+		fclose(fp);
+		return -1;
+	}
+
+	if (strncmp(buf, "vfio-noiommu", strlen("vfio-noiommu")) != 0) {
+		RTE_LOG(ERR, EAL, "not a vfio-noiommu driver\n");
+		fclose(fp);
+		return -1;
+	}
+
+	fclose(fp);
+
+	return 0;
+}
 #endif
