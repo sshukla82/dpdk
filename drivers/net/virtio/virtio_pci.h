@@ -35,14 +35,6 @@
 #define _VIRTIO_PCI_H_
 
 #include <stdint.h>
-
-#ifdef __FreeBSD__
-#include <sys/types.h>
-#include <machine/cpufunc.h>
-#else
-#include <sys/io.h>
-#endif
-
 #include <rte_ethdev.h>
 
 struct virtqueue;
@@ -295,28 +287,6 @@ struct virtio_net_config {
 
 /* The alignment to use between consumer and producer parts of vring. */
 #define VIRTIO_PCI_VRING_ALIGN 4096
-
-#ifdef __FreeBSD__
-
-static inline void
-outb_p(unsigned char data, unsigned int port)
-{
-
-	outb(port, (u_char)data);
-}
-
-static inline void
-outw_p(unsigned short data, unsigned int port)
-{
-	outw(port, (u_short)data);
-}
-
-static inline void
-outl_p(unsigned int data, unsigned int port)
-{
-	outl(port, (u_int)data);
-}
-#endif
 
 static inline int
 vtpci_with_feature(struct virtio_hw *hw, uint64_t bit)

@@ -37,6 +37,7 @@
  #include <fcntl.h>
 #endif
 
+#include "virtio_io.h"
 #include "virtio_pci.h"
 #include "virtio_logs.h"
 #include "virtqueue.h"
