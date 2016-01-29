@@ -35,7 +35,7 @@
 #define _VIRTIO_IO_H_
 
 #include <rte_common.h>
-#include "virtio_logs.h"
+#include "virtio_vfio_io.h"
 
 #if defined(RTE_ARCH_X86_64) || defined(RTE_ARCH_I686)
 
