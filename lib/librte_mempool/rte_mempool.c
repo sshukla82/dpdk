@@ -529,6 +529,11 @@ rte_mempool_populate_default(struct rte_mempool *mp)
 	if (mp->nb_mem_chunks != 0)
 		return -EEXIST;
 
+	/* Get mempool capability */
+	ret = rte_mempool_ops_get_capabilities(mp);
+	if (ret)
+		RTE_LOG(DEBUG, MEMPOOL, "get_capability not supported for %s\n", mp->name);
+
 	if (rte_xen_dom0_supported()) {
 		pg_sz = RTE_PGSIZE_2M;
 		pg_shift = rte_bsf32(pg_sz);
