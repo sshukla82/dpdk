@@ -396,6 +396,11 @@ typedef unsigned (*rte_mempool_get_count)(const struct rte_mempool *mp);
  */
 typedef int (*rte_mempool_get_capabilities_t)(struct rte_mempool *mp);
 
+/**
+ * Update range info to mempool.
+ */
+typedef void (*rte_mempool_update_range_t)(const struct rte_mempool *mp,
+		char *vaddr, phys_addr_t paddr, size_t len);
 
 /** Structure defining mempool operations structure */
 struct rte_mempool_ops {
@@ -406,6 +411,7 @@ struct rte_mempool_ops {
 	rte_mempool_dequeue_t dequeue;   /**< Dequeue an object. */
 	rte_mempool_get_count get_count; /**< Get qty of available objs. */
 	rte_mempool_get_capabilities_t get_capabilities; /**< Get capability */
+	rte_mempool_update_range_t update_range; /**< Update range to mempool */
 } __rte_cache_aligned;
 
 #define RTE_MEMPOOL_MAX_OPS_IDX 16  /**< Max registered ops structs */
@@ -529,6 +535,22 @@ rte_mempool_ops_get_count(const struct rte_mempool *mp);
  */
 int
 rte_mempool_ops_get_capabilities(struct rte_mempool *mp);
+
+/**
+ * @internal wrapper for mempool_ops update_range callback.
+ *
+ * @param mp
+ *   Pointer to the memory pool.
+ * @param vaddr
+ *   Pointer to the buffer virtual address
+ * @param paddr
+ *   Pointer to the buffer physical address
+ * @param len
+ *   Pool size
+ */
+void
+rte_mempool_ops_update_range(const struct rte_mempool *mp,
+				char *vaddr, phys_addr_t paddr, size_t len);
 
 /**
  * @internal wrapper for mempool_ops free callback.

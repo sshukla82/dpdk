@@ -363,6 +363,9 @@ rte_mempool_populate_phys(struct rte_mempool *mp, char *vaddr,
 	struct rte_mempool_memhdr *memhdr;
 	int ret;
 
+	/* update range info to mempool */
+	rte_mempool_ops_update_range(mp, vaddr, paddr, len);
+
 	/* create the internal ring if not already done */
 	if ((mp->flags & MEMPOOL_F_POOL_CREATED) == 0) {
 		ret = rte_mempool_ops_alloc(mp);
