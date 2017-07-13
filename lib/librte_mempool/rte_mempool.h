@@ -226,7 +226,7 @@ struct rte_mempool {
 	};
 	void *pool_config;               /**< optional args for ops alloc. */
 	const struct rte_memzone *mz;    /**< Memzone where pool is alloc'd. */
-	int flags;                       /**< Flags of the mempool. */
+	unsigned int flags;              /**< Flags of the mempool. */
 	int socket_id;                   /**< Socket id passed at create. */
 	uint32_t size;                   /**< Max size of the mempool. */
 	uint32_t cache_size;
@@ -1034,9 +1034,6 @@ rte_mempool_default_cache(struct rte_mempool *mp, unsigned lcore_id)
  *   positive.
  * @param cache
  *   A pointer to a mempool cache structure. May be NULL if not needed.
- * @param flags
- *   The flags used for the mempool creation.
- *   Single-producer (MEMPOOL_F_SP_PUT flag) or multi-producers.
  */
 static __rte_always_inline void
 __mempool_generic_put(struct rte_mempool *mp, void * const *obj_table,
@@ -1096,14 +1093,10 @@ ring_enqueue:
  *   The number of objects to add in the mempool from the obj_table.
  * @param cache
  *   A pointer to a mempool cache structure. May be NULL if not needed.
- * @param flags
- *   The flags used for the mempool creation.
- *   Single-producer (MEMPOOL_F_SP_PUT flag) or multi-producers.
  */
 static __rte_always_inline void
 rte_mempool_generic_put(struct rte_mempool *mp, void * const *obj_table,
-			unsigned n, struct rte_mempool_cache *cache,
-			__rte_unused int flags)
+			unsigned n, struct rte_mempool_cache *cache)
 {
 	__mempool_check_cookies(mp, obj_table, n, 0);
 	__mempool_generic_put(mp, obj_table, n, cache);
@@ -1129,7 +1122,7 @@ rte_mempool_put_bulk(struct rte_mempool *mp, void * const *obj_table,
 {
 	struct rte_mempool_cache *cache;
 	cache = rte_mempool_default_cache(mp, rte_lcore_id());
-	rte_mempool_generic_put(mp, obj_table, n, cache, mp->flags);
+	rte_mempool_generic_put(mp, obj_table, n, cache);
 }
 
 /**
@@ -1160,9 +1153,6 @@ rte_mempool_put(struct rte_mempool *mp, void *obj)
  *   The number of objects to get, must be strictly positive.
  * @param cache
  *   A pointer to a mempool cache structure. May be NULL if not needed.
- * @param flags
- *   The flags used for the mempool creation.
- *   Single-consumer (MEMPOOL_F_SC_GET flag) or multi-consumers.
  * @return
  *   - >=0: Success; number of objects supplied.
  *   - <0: Error; code of ring dequeue function.
@@ -1241,16 +1231,13 @@ ring_dequeue:
  *   The number of objects to get from mempool to obj_table.
  * @param cache
  *   A pointer to a mempool cache structure. May be NULL if not needed.
- * @param flags
- *   The flags used for the mempool creation.
- *   Single-consumer (MEMPOOL_F_SC_GET flag) or multi-consumers.
  * @return
  *   - 0: Success; objects taken.
  *   - -ENOENT: Not enough entries in the mempool; no object is retrieved.
  */
 static __rte_always_inline int
 rte_mempool_generic_get(struct rte_mempool *mp, void **obj_table, unsigned n,
-			struct rte_mempool_cache *cache, __rte_unused int flags)
+			struct rte_mempool_cache *cache)
 {
 	int ret;
 	ret = __mempool_generic_get(mp, obj_table, n, cache);
@@ -1286,7 +1273,7 @@ rte_mempool_get_bulk(struct rte_mempool *mp, void **obj_table, unsigned n)
 {
 	struct rte_mempool_cache *cache;
 	cache = rte_mempool_default_cache(mp, rte_lcore_id());
-	return rte_mempool_generic_get(mp, obj_table, n, cache, mp->flags);
+	return rte_mempool_generic_get(mp, obj_table, n, cache);
 }
 
 /**
