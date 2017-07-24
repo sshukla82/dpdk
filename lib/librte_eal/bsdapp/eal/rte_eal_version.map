@@ -244,5 +244,6 @@ DPDK_17.11 {
 	rte_pci_match;
 	rte_pci_get_iommu_class;
 	rte_bus_get_iommu_class;
+	rte_eal_iova_mode;
 
 } DPDK_17.08;
