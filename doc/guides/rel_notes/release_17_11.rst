@@ -110,6 +110,13 @@ API Changes
    Also, make sure to start the actual text at the margin.
    =========================================================
 
+* **The following changes made in mempool library**
+
+  * Moved ``flag`` datatype from int to unsigned int for ``rte_mempool``.
+  * Removed ``__rte_unused int flag`` param from ``rte_mempool_generic_put``
+    and ``rte_mempool_generic_get`` API.
+  * Added ``rte_mempool`` param in ``rte_mempool_xmem_size`` and
+    ``rte_mempool_xmem_usage``.
 
 ABI Changes
 -----------
