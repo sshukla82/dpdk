@@ -38,5 +38,7 @@ DIRS-$(CONFIG_RTE_DRIVER_MEMPOOL_RING) += ring
 DEPDIRS-ring = $(core-libs)
 DIRS-$(CONFIG_RTE_DRIVER_MEMPOOL_STACK) += stack
 DEPDIRS-stack = $(core-libs)
+DIRS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += octeontx
+DEPDIRS-octeontx = $(core-libs) librte_pmd_octeontx_ssovf
 
 include $(RTE_SDK)/mk/rte.subdir.mk

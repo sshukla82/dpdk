@@ -1,7 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
-#   All rights reserved.
+#   Copyright(c) 2017 Cavium Inc. All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -13,7 +12,7 @@
 #       notice, this list of conditions and the following disclaimer in
 #       the documentation and/or other materials provided with the
 #       distribution.
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of Cavium Networks nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -28,18 +27,34 @@
 #   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-DIRS-y += bus
-DEPDIRS-event := bus
-DIRS-$(CONFIG_RTE_LIBRTE_EVENTDEV) += event
-DIRS-y += mempool
-DEPDIRS-mempool := bus
-DEPDIRS-mempool := event
-DIRS-y += net
-DEPDIRS-net := bus mempool
-DIRS-$(CONFIG_RTE_LIBRTE_CRYPTODEV) += crypto
-DEPDIRS-crypto := mempool
+#
+# library name
+#
+LIB = librte_mempool_octeontx.a
 
-include $(RTE_SDK)/mk/rte.subdir.mk
+ifeq ($(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL_DEBUG),y)
+CFLAGS += -O0 -g
+else
+CFLAGS += -O3
+CFLAGS += $(WERROR_FLAGS)
+endif
+
+EXPORT_MAP := rte_mempool_octeontx_version.map
+
+LIBABIVER := 1
+
+#
+# all source are stored in SRCS-y
+#
+SRCS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += octeontx_fpavf.c
+
+# this lib depends upon:
+DEPDIRS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += lib/librte_mbuf
+
+LDLIBS += -lrte_pmd_octeontx_ssovf
+
+include $(RTE_SDK)/mk/rte.lib.mk
