@@ -326,6 +326,13 @@ F: drivers/net/bnxt/
 F: doc/guides/nics/bnxt.rst
 F: doc/guides/nics/features/bnxt.ini
 
+Cavium OCTEONTX
+M: Santosh Shukla <santosh.shukla@caviumnetworks.com>
+M: Jerin Jacob <jerin.jacob@caviumnetworks.com>
+F: drivers/net/octeontx/
+F: doc/guides/nics/octeontx.rst
+F: doc/guides/nics/features/octeontx.ini
+
 Cavium ThunderX nicvf
 M: Jerin Jacob <jerin.jacob@caviumnetworks.com>
 M: Maciej Czekaj <maciej.czekaj@caviumnetworks.com>
