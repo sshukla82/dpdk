@@ -52,6 +52,8 @@ LIBABIVER := 1
 #
 SRCS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += octeontx_fpavf.c
 SRCS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += rte_mempool_octeontx.c
+SRCS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += octeontx_ssovf.c
+SRCS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += octeontx_mbox.c
 
 ifeq ($(CONFIG_RTE_TOOLCHAIN_GCC),y)
 CFLAGS_rte_mempool_octeontx.o += -fno-prefetch-loop-arrays
@@ -68,7 +70,5 @@ endif
 
 # this lib depends upon:
 DEPDIRS-$(CONFIG_RTE_LIBRTE_OCTEONTX_MEMPOOL) += lib/librte_mbuf
-
-LDLIBS += -lrte_pmd_octeontx_ssovf
 
 include $(RTE_SDK)/mk/rte.lib.mk

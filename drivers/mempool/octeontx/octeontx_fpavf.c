@@ -48,7 +48,7 @@
 #include <rte_spinlock.h>
 #include <rte_mbuf.h>
 
-#include <rte_pmd_octeontx_ssovf.h>
+#include "octeontx_mbox.h"
 #include "octeontx_fpavf.h"
 
 /* FPA Mbox Message */
